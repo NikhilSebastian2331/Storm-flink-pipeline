@@ -1,0 +1,15 @@
+# Ignore Maven build files
+target/
+*.jar
+
+# Ignore Storm logs and data
+logs/
+storm-local/
+
+# Ignore IDE files
+.idea/
+*.iml
+.vscode/
+
+# Ignore OS files
+.DS_Store

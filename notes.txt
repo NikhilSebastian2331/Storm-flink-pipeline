@@ -1,0 +1,59 @@
+no restart policy in containers
+docker-compose up -d
+python script needs kafka-python in kafka container
+install using pip install kafka-python
+
+-------------------
+
+Kafka commands
+
+kafka-topics --list --bootstrap-server localhost:9092
+kafka-console-consumer  --bootstrap-server localhost:9092 --topic storm-request-topic
+
+flink-response-topic
+storm-request-topic
+---------------------
+
+Build and package storm
+
+mvn clean package -> Create FAT jar
+** NOT FAT JAR ** docker cp target/original-test-1.0-SNAPSHOT.jar storm-nimbus:/wordcount.jar
+docker cp target/test-1.0-SNAPSHOT.jar storm-nimbus:/wordcount.jar
+docker cp ../../notes.txt storm-supervisor:/tmp/notes.txt
+docker exec -it storm-nimbus storm jar /wordcount.jar com.wordCount.Topology my-wordcount-topology
+
+Kill running topo
+docker exec -it storm-nimbus storm kill my-wordcount-topology -c nimbus.seeds=["localhost"]
+
+
+   checks
+   javap -v target/classes/com/wordCount/Topology.class | grep major -> Issue in java version in container, check compiled version of jar
+   mvn clean package -Dmaven.compiler.release=11 -> Forces v55
+
+   Leader not found
+   docker exec -it storm-nimbus storm jar /wordcount.jar com.wordCount.Topology my-wordcount-topology -c nimbus.seeds=["localhost"]
+   docker exec -it storm-nimbus storm list -c nimbus.seeds=["localhost"] -> Check dns resolution
+   docker exec -it storm-ui storm list -c nimbus.seeds=["storm-nimbus"] -> Check dns resolution
+   docker logs storm-ui
+
+
+=======================
+
+Storm
+   Spout: Takes input data and passes it
+   Bolt: Takes data from spout and transforms, passes it to another bolt or persist in storage
+
+   Components:
+      Tuple: Each unit of data sent from spout to bolt will be a tuple. First column headers are sent and then the comma seperated values are sent using tuples
+      Streams: Unbounded sequence of tuples
+      Spout: Takes input data and passes it
+      Bolt: Takes data from spout and transforms, passes it to another bolt or persist in storage
+      Topologies: Visual representation of Spout and bolts (DAG).
+
+   Storm running modes:
+      Local mode: Runs on local machine, for testing
+      Remote mode: Package topo to jar and submit to remote storm cluster
+
+
+=========================
+

@@ -31,10 +31,8 @@ public class CounterBolt extends BaseBasicBolt {
     @Override
     public void execute(Tuple tuple, BasicOutputCollector collector) {
         String word = tuple.getStringByField("word");
-        int count = counts.getOrDefault(word, 0) + 1;
-        counts.put(word, count);
         
-        String json = String.format("{\"word\": \"%s\", \"count\": %d}", word, count);
+        String json = String.format("{\"word\": \"%s\", \"count\": 1}", word);
 
         producer.send(new ProducerRecord<>(topic, word, json));
 

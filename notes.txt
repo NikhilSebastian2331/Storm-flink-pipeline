@@ -8,7 +8,7 @@ install using pip install kafka-python
 Kafka commands
 
 kafka-topics --list --bootstrap-server localhost:9092
-kafka-console-consumer  --bootstrap-server localhost:9092 --topic storm-request-topic
+kafka-console-consumer  --bootstrap-server localhost:9092 --topic flink-response-topic
 
 flink-response-topic
 storm-request-topic
@@ -16,11 +16,22 @@ storm-request-topic
 
 Build and package storm
 
+docker-compose up -d --build
+docker-compose up -d
+docker cp schema.cql storm-nimbus:/schema.cql
+docker exec -it cassandra cqlsh -u cassandra -p cassandra -f /schema.cql
 mvn clean package -> Create FAT jar
-** NOT FAT JAR ** docker cp target/original-test-1.0-SNAPSHOT.jar storm-nimbus:/wordcount.jar
-docker cp target/test-1.0-SNAPSHOT.jar storm-nimbus:/wordcount.jar
-docker cp ../../notes.txt storm-supervisor:/tmp/notes.txt
+docker cp storm/test/target/test-1.0-SNAPSHOT.jar storm-nimbus:/wordcount.jar
+docker cp notes.txt storm-supervisor:/tmp/notes.txt
 docker exec -it storm-nimbus storm jar /wordcount.jar com.wordCount.Topology my-wordcount-topology
+
+------------
+flink
+docker cp flink-agg/count_agg.py jobmanager:/opt/flink/count_agg.py
+docker exec -it jobmanager ./bin/flink run -py /opt/flink/count_agg.py
+
+
+docker exec -it cassandra cqlsh -e "SELECT * FROM storm_flink_ks.word_counts;"
 
 Kill running topo
 docker exec -it storm-nimbus storm kill my-wordcount-topology -c nimbus.seeds=["localhost"]

@@ -2,6 +2,9 @@
 target/
 *.jar
 
+#Ignore python venv
+venv/
+
 # Ignore Storm logs and data
 logs/
 storm-local/
